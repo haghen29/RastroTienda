@@ -23,6 +23,7 @@ export default async function AdminSectionsPage() {
         Son los botones grandes con imagen que aparecen en el inicio (ej. &quot;Perfumes de
         Diseñador 100ml&quot;). Cada uno tiene su propia imagen y lleva a la página que elijas
         (por ejemplo <code>/disenador</code>, <code>/arabes</code> o cualquier otra categoría).
+        Usá imágenes de 1920×900 px para que no se vean cortadas.
       </p>
 
       <div className="space-y-4">
@@ -63,7 +64,7 @@ export default async function AdminSectionsPage() {
               </label>
             </div>
             <label className="block">
-              <span className="block text-[13px] mb-1">Imagen (URL)</span>
+              <span className="block text-[13px] mb-1">Imagen (URL, 1920×900 px)</span>
               <input
                 name="image"
                 defaultValue={s.image}

@@ -17,7 +17,7 @@ const STEPS: { n: Step; label: string }[] = [
   { n: 3, label: "Pago" },
 ];
 
-export function CheckoutClient() {
+export function CheckoutClient({ checkoutNote }: { checkoutNote: string }) {
   const {
     lines, subtotal, zip, setZip, shippingOptions, selectedShipping,
     selectShipping, loadingShipping, hydrated, clear,
@@ -33,7 +33,6 @@ export function CheckoutClient() {
   const [coupon, setCoupon] = useState("");
   const [couponState, setCouponState] = useState<{ code: string; discount: number } | null>(null);
   const [couponOpen, setCouponOpen] = useState(false);
-  const [method, setMethod] = useState<"mercadopago" | "transfer">("transfer");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   /** Evita que el redirect de "carrito vacío" pise la navegación al comprobante. */
@@ -74,7 +73,7 @@ export function CheckoutClient() {
           })),
           customer,
           shipping: { optionId: selectedShipping?.id ?? "", zip, ...addr },
-          paymentMethod: method,
+          paymentMethod: "transfer",
           couponCode: couponState?.code ?? "",
           note,
         }),
@@ -83,8 +82,7 @@ export function CheckoutClient() {
       if (!res.ok) { setError(data.error ?? "No pudimos procesar el pedido"); return; }
       setSubmitted(true);
       clear();
-      if (data.method === "mercadopago") window.location.href = data.redirect;
-      else router.push(data.redirect);
+      router.push(data.redirect);
     } catch {
       setError("Hubo un problema de conexión. Probá de nuevo.");
     } finally {
@@ -280,7 +278,7 @@ export function CheckoutClient() {
                 <div className="flex gap-3">
                   <IconChat size={18} className="mt-0.5 shrink-0 text-[var(--fg-40)]" />
                   <span className="flex-1">
-                    <strong className="block mb-1">{store.checkoutNote}</strong>
+                    <strong className="block mb-1">{checkoutNote}</strong>
                     {showNote ? (
                       <textarea
                         className="input-rastro h-24 py-2 mt-2" value={note}
@@ -299,28 +297,14 @@ export function CheckoutClient() {
 
               <div>
                 <h2 className="text-[13px] tracking-wide text-[var(--fg-40)] mb-3">MEDIO DE PAGO</h2>
-                <div className="space-y-3">
-                  <label className="flex gap-3 border border-[var(--fg-10)] p-4 cursor-pointer has-[:checked]:border-[var(--fg-40)]">
-                    <input type="radio" name="pm" className="mt-1 accent-[#333]"
-                      checked={method === "transfer"} onChange={() => setMethod("transfer")} />
-                    <span>
-                      <span className="block text-[14px]">Transferencia o depósito</span>
-                      <span className="block text-[12px] text-[var(--fg-40)] mt-1">
-                        Te damos el alias y nos mandás el comprobante por WhatsApp.
-                        {store.transfer.discountPct > 0 && ` ${store.transfer.discountPct}% de descuento.`}
-                      </span>
+                <div className="flex gap-3 border border-[var(--fg-40)] p-4">
+                  <span>
+                    <span className="block text-[14px]">Transferencia o depósito</span>
+                    <span className="block text-[12px] text-[var(--fg-40)] mt-1">
+                      Te damos el alias y nos mandás el comprobante por WhatsApp.
+                      {store.transfer.discountPct > 0 && ` ${store.transfer.discountPct}% de descuento.`}
                     </span>
-                  </label>
-                  <label className="flex gap-3 border border-[var(--fg-10)] p-4 cursor-pointer has-[:checked]:border-[var(--fg-40)]">
-                    <input type="radio" name="pm" className="mt-1 accent-[#333]"
-                      checked={method === "mercadopago"} onChange={() => setMethod("mercadopago")} />
-                    <span>
-                      <span className="block text-[14px]">Tarjeta de crédito o débito</span>
-                      <span className="block text-[12px] text-[var(--fg-40)] mt-1">
-                        Pagás con Mercado Pago. Aceptamos todas las tarjetas y cuotas.
-                      </span>
-                    </span>
-                  </label>
+                  </span>
                 </div>
               </div>
 
@@ -331,7 +315,7 @@ export function CheckoutClient() {
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)} className="btn-link-rastro">Volver</button>
                 <button type="button" disabled={busy} onClick={submit} className="btn-rastro flex-1">
-                  {busy ? "Procesando…" : method === "transfer" ? "Confirmar pedido" : "Pagar con Mercado Pago"}
+                  {busy ? "Procesando…" : "Confirmar pedido"}
                 </button>
               </div>
             </section>

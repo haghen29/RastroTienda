@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import type { Order } from "@/lib/types";
+import type { Order, OrderStatus } from "@/lib/types";
 import { store, formatARS } from "@/lib/config";
 import { siteUrl } from "@/lib/payments/mercadopago";
 
@@ -106,6 +106,45 @@ export async function sendMerchantNotification(order: Order) {
     ${order.address.city}, ${order.address.state} — CP ${order.address.zip}</p>
     ${order.note ? `<p style="font-size:13px;background:#fff8e6;padding:12px"><strong>Nota:</strong> ${order.note}</p>` : ""}`;
   return send(process.env.MERCHANT_EMAIL ?? store.email, `Pedido nuevo ${order.id}`, layout("Pedido nuevo", body));
+}
+
+export async function sendShippedNotice(order: Order) {
+  const body = `
+    <p style="font-size:14px">¡Buenas noticias, ${order.customerName.split(" ")[0]}!</p>
+    <p style="font-size:14px">Tu pedido <strong>${order.id}</strong> ya salió — ${order.shippingLabel}.</p>
+    <p style="font-size:13px;color:#666">${order.shippingEta}</p>
+    <p style="margin-top:24px"><a href="${siteUrl()}/checkout/gracias/${order.id}"
+      style="background:#e8e8e3;color:#2c3e50;padding:13px 24px;text-decoration:none;display:inline-block;font-size:12px">Ver mi pedido</a></p>`;
+  return send(order.customerEmail, `Tu pedido ${order.id} está en camino — ${store.name}`, layout("Pedido enviado", body));
+}
+
+export async function sendDeliveredNotice(order: Order) {
+  const body = `
+    <p style="font-size:14px">Tu pedido <strong>${order.id}</strong> quedó marcado como entregado.</p>
+    <p style="font-size:14px">Esperamos que lo disfrutes — ¡gracias por elegirnos!</p>`;
+  return send(order.customerEmail, `Pedido ${order.id} entregado — ${store.name}`, layout("Pedido entregado", body));
+}
+
+export async function sendCancelledNotice(order: Order) {
+  const body = `
+    <p style="font-size:14px">Tu pedido <strong>${order.id}</strong> fue cancelado.</p>
+    <p style="font-size:14px">Si te parece que es un error o tenés alguna duda, escribinos por
+      <a href="https://wa.me/${store.phoneWhatsapp}">WhatsApp</a>.</p>`;
+  return send(order.customerEmail, `Pedido ${order.id} cancelado — ${store.name}`, layout("Pedido cancelado", body));
+}
+
+/** Dispara el mail correspondiente al nuevo estado de un pedido. */
+export async function notifyOrderStatus(order: Order) {
+  const byStatus: Partial<Record<OrderStatus, (o: Order) => Promise<{ sent: boolean }>>> = {
+    awaiting_transfer: sendTransferInstructions,
+    paid: sendOrderConfirmation,
+    shipped: sendShippedNotice,
+    delivered: sendDeliveredNotice,
+    cancelled: sendCancelledNotice,
+  };
+  const fn = byStatus[order.status];
+  if (!fn) return { sent: false };
+  return fn(order);
 }
 
 export async function sendContactMessage(m: { name: string; email: string; phone: string; body: string }) {

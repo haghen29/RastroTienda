@@ -48,14 +48,31 @@ function hydrate(rows: ProductRow[]): Product[] {
   }));
 }
 
+interface CategoryRow {
+  slug: string; name: string; description: string; image: string;
+  position: number; home_visible: number;
+}
+
+function hydrateCategory(r: CategoryRow): Category {
+  return {
+    slug: r.slug,
+    name: r.name,
+    description: r.description,
+    image: r.image,
+    position: r.position,
+    homeVisible: !!r.home_visible,
+  };
+}
+
 export function listCategories(): Category[] {
-  return all<Category & { position: number }>(
-    `SELECT slug, name, description, image, position FROM categories ORDER BY position, name`,
-  );
+  return all<CategoryRow>(
+    `SELECT slug, name, description, image, position, home_visible FROM categories ORDER BY position, name`,
+  ).map(hydrateCategory);
 }
 
 export function getCategory(slug: string): Category | undefined {
-  return get<Category>(`SELECT * FROM categories WHERE slug = ?`, slug);
+  const row = get<CategoryRow>(`SELECT * FROM categories WHERE slug = ?`, slug);
+  return row ? hydrateCategory(row) : undefined;
 }
 
 export interface ProductQuery {

@@ -4,44 +4,24 @@ import { ModuleCarousel } from "@/components/home/ModuleCarousel";
 import { ProductCard } from "@/components/product/ProductCard";
 import { listCategories, listProducts } from "@/lib/repo/products";
 import { listSections } from "@/lib/repo/sections";
+import { listBanners } from "@/lib/repo/banners";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
   const categories = listCategories();
-  const genderCats = categories.filter((c) =>
-    ["masculino", "femenino", "unisex"].includes(c.slug),
-  );
+  const homeCats = categories.filter((c) => c.homeVisible);
 
   const sections = listSections();
+  const banners = listBanners();
   const featured = listProducts({ sort: "best", limit: 4 }).items;
-  const arabes = listProducts({ category: "arabes", limit: 1 }).items[0];
-  const disenador = listProducts({ category: "disenador", limit: 1 }).items[0];
 
   return (
     <>
-      <CategoryStrip categories={genderCats} />
+      {homeCats.length > 0 && <CategoryStrip categories={homeCats} />}
 
-      <BannerGrid
-        title="Accesibles Y Premium"
-        banners={[
-          {
-            href: "/arabes",
-            title: "Decants Árabes",
-            kicker: "COLECCIÓN",
-            image: arabes?.images[1],
-            tone: "dark",
-          },
-          {
-            href: "/disenador",
-            title: "Decants de Diseñador",
-            kicker: "COLECCIÓN",
-            image: disenador?.images[1],
-            tone: "dark",
-          },
-        ]}
-      />
+      {banners.length > 0 && <BannerGrid title="Accesibles Y Premium" banners={banners} />}
 
       {/* Sección nueva: productos destacados. Hoy la home no muestra
           ni un precio, y es la mejora de conversión más barata. */}

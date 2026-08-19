@@ -20,6 +20,15 @@ export function db(): DatabaseSync {
     "utf8",
   );
   conn.exec(schema);
+
+  // Migraciones livianas para bases creadas antes de sumar esta columna.
+  // ALTER TABLE ADD COLUMN falla si ya existe; lo ignoramos a propósito.
+  try {
+    conn.exec(`ALTER TABLE categories ADD COLUMN home_visible INTEGER NOT NULL DEFAULT 0`);
+  } catch {
+    // ya existe
+  }
+
   _db = conn;
   return conn;
 }

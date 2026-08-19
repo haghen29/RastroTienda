@@ -23,6 +23,7 @@ export const store = {
   minimumOrder: Number(process.env.MINIMUM_ORDER ?? 0),
   /** Envío gratis a partir de este monto. 0 = desactivado */
   freeShippingFrom: Number(process.env.FREE_SHIPPING_FROM ?? 0),
+  /** Valor de arranque para el mensaje editable en /admin/mensajes (tabla `settings`). */
   checkoutNote:
     "Combo de decants: indicá perfume y medida en orden de preferencia. Ej: Le Male EDT - 10ml. Si faltan nombres, se repiten desde el primero. Ante cualquier duda te contactamos por WhatsApp.",
 } as const;

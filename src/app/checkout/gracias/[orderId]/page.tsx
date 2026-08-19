@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getOrder } from "@/lib/repo/orders";
 import { formatARS, store } from "@/lib/config";
 import { transferProofMessage, waLink } from "@/lib/whatsapp";
+import { statusMessage } from "@/lib/orderStatus";
 import { Logo } from "@/components/ui/Logo";
 import { IconWhatsApp } from "@/components/ui/Icon";
 
@@ -18,6 +19,8 @@ export default async function GraciasPage({
   if (!order) notFound();
 
   const isTransfer = order.paymentMethod === "transfer";
+  const needsTransfer = isTransfer && (order.status === "pending" || order.status === "awaiting_transfer");
+  const msg = statusMessage(order.status);
   const t = store.transfer;
 
   return (
@@ -29,15 +32,14 @@ export default async function GraciasPage({
       </div>
 
       <div className="container-rastro py-12 max-w-[620px]">
-        <h1 className="font-heading text-[26px] mb-2">
-          {isTransfer ? "Reservamos tu pedido" : "¡Gracias por tu compra!"}
-        </h1>
-        <p className="text-[14px] text-[var(--fg-40)] mb-8">
+        <h1 className="font-heading text-[26px] mb-2">{msg.title}</h1>
+        <p className="text-[14px] text-[var(--fg-40)] mb-2">
           Pedido <strong className="text-[var(--main-foreground)]">{order.id}</strong> ·{" "}
           {new Date(order.createdAt + "Z").toLocaleDateString("es-AR")}
         </p>
+        <p className="text-[14px] mb-8">{msg.detail}</p>
 
-        {isTransfer && (
+        {needsTransfer && (
           <section className="bg-[var(--fg-03)] p-6 mb-8">
             <h2 className="font-heading text-[18px] mb-4">Datos para transferir</h2>
             <dl className="text-[14px] space-y-2">

@@ -31,6 +31,7 @@ export interface Category {
   description: string;
   image: string;
   position: number;
+  homeVisible: boolean;
 }
 
 export interface Section {
@@ -41,6 +42,16 @@ export interface Section {
   ctaLabel: string;
   ctaHref: string;
   image: string;
+  position: number;
+}
+
+export interface Banner {
+  id: number;
+  href: string;
+  title: string;
+  kicker: string;
+  image: string;
+  tone: "dark" | "light";
   position: number;
 }
 

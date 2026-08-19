@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { run, get } from "@/lib/db";
-import { setOrderStatus } from "@/lib/repo/orders";
+import { getOrder, setOrderStatus } from "@/lib/repo/orders";
 import { isAdmin, login, logout } from "@/lib/auth";
+import { setSetting } from "@/lib/repo/settings";
+import { notifyOrderStatus } from "@/lib/mail";
 import type { OrderStatus } from "@/lib/types";
 
 async function guard() {
@@ -26,7 +28,12 @@ export async function updateOrderStatus(formData: FormData) {
   await guard();
   const id = String(formData.get("id"));
   const status = String(formData.get("status")) as OrderStatus;
+  const before = getOrder(id);
   setOrderStatus(id, status);
+  if (before && before.status !== status) {
+    const updated = getOrder(id);
+    if (updated) void notifyOrderStatus(updated).catch(() => {});
+  }
   revalidatePath("/admin");
 }
 
@@ -152,4 +159,62 @@ export async function deleteSection(formData: FormData) {
   run(`DELETE FROM sections WHERE id = ?`, Number(formData.get("id")));
   revalidatePath("/admin/secciones");
   revalidatePath("/");
+}
+
+export async function updateCategory(formData: FormData) {
+  await guard();
+  const slug = String(formData.get("slug"));
+  run(
+    `UPDATE categories SET name = ?, image = ?, home_visible = ? WHERE slug = ?`,
+    String(formData.get("name") ?? ""),
+    String(formData.get("image") ?? ""),
+    formData.get("homeVisible") ? 1 : 0,
+    slug,
+  );
+  revalidatePath("/admin/categorias");
+  revalidatePath("/");
+}
+
+export async function updateBanner(formData: FormData) {
+  await guard();
+  const id = Number(formData.get("id"));
+  run(
+    `UPDATE banners SET href = ?, title = ?, kicker = ?, image = ?, tone = ? WHERE id = ?`,
+    String(formData.get("href") ?? ""),
+    String(formData.get("title") ?? ""),
+    String(formData.get("kicker") ?? ""),
+    String(formData.get("image") ?? ""),
+    String(formData.get("tone") ?? "dark"),
+    id,
+  );
+  revalidatePath("/admin/banners");
+  revalidatePath("/");
+}
+
+export async function createBanner(formData: FormData) {
+  await guard();
+  const href = String(formData.get("href") ?? "").trim();
+  if (!href) return;
+  const maxPos = get<{ p: number }>(`SELECT COALESCE(MAX(position), -1) AS p FROM banners`)!.p;
+  run(
+    `INSERT INTO banners (href, title, kicker, image, tone, position) VALUES (?,?,?,?,?,?)`,
+    href, "", "", "", "dark", maxPos + 1,
+  );
+  revalidatePath("/admin/banners");
+  revalidatePath("/");
+}
+
+export async function deleteBanner(formData: FormData) {
+  await guard();
+  run(`DELETE FROM banners WHERE id = ?`, Number(formData.get("id")));
+  revalidatePath("/admin/banners");
+  revalidatePath("/");
+}
+
+export async function updateSetting(formData: FormData) {
+  await guard();
+  const key = String(formData.get("key"));
+  setSetting(key, String(formData.get("value") ?? ""));
+  revalidatePath("/admin/mensajes");
+  revalidatePath("/checkout");
 }

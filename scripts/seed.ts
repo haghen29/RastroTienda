@@ -1,6 +1,7 @@
 import { db, run, get } from "../src/lib/db";
 import { ALL_PRODUCTS, CATEGORIES, imageBase } from "../data/catalog";
-import { img } from "../src/lib/config";
+import { img, store } from "../src/lib/config";
+import { CHECKOUT_NOTE_KEY } from "../src/lib/repo/settings";
 
 const conn = db();
 
@@ -31,10 +32,21 @@ function categoryImage(slug: string): string {
   return code ? img(imageBase(code), 1024) : "";
 }
 
+// Imágenes propias (subidas a public/images) que reemplazan la foto de
+// producto genérica para estas categorías puntuales.
+const CATEGORY_IMAGE_OVERRIDE: Record<string, string> = {
+  masculino: "/images/categoria-masculino.png",
+  femenino: "/images/categoria-femenino.png",
+};
+
+// Categorías que arrancan visibles en la tira de imágenes del inicio.
+const HOME_VISIBLE_DEFAULT = new Set(["masculino", "femenino", "unisex"]);
+
 for (const c of CATEGORIES) {
   run(
-    `INSERT INTO categories (slug, name, image, position) VALUES (?,?,?,?)`,
-    c.slug, c.name, categoryImage(c.slug), c.order,
+    `INSERT INTO categories (slug, name, image, position, home_visible) VALUES (?,?,?,?,?)`,
+    c.slug, c.name, CATEGORY_IMAGE_OVERRIDE[c.slug] ?? categoryImage(c.slug), c.order,
+    HOME_VISIBLE_DEFAULT.has(c.slug) ? 1 : 0,
   );
 }
 
@@ -77,20 +89,41 @@ const DEFAULT_SECTIONS = [
     id: 1, title: "Perfumes de Diseñador 100ml", kicker: "LISTADO DE",
     text: "Escribinos al Instagram y te lo llevamos.",
     ctaLabel: "Ver decants de diseñador", ctaHref: "/disenador", position: 0,
+    image: "/images/seccion-listado-disenador.png",
   },
   {
     id: 2, title: "Perfumes Árabes 100ml", kicker: "LISTADO DE",
     text: "Escribinos al Instagram y te lo llevamos.",
     ctaLabel: "Ver decants árabes", ctaHref: "/arabes", position: 1,
+    image: "/images/seccion-listado-arabes.png",
   },
 ];
 for (const s of DEFAULT_SECTIONS) {
   run(
     `INSERT OR IGNORE INTO sections (id, title, kicker, text, cta_label, cta_href, image, position)
      VALUES (?,?,?,?,?,?,?,?)`,
-    s.id, s.title, s.kicker, s.text, s.ctaLabel, s.ctaHref, "", s.position,
+    s.id, s.title, s.kicker, s.text, s.ctaLabel, s.ctaHref, s.image, s.position,
   );
 }
+
+// Banners de "Accesibles Y Premium" (editables desde /admin/banners).
+const DEFAULT_BANNERS = [
+  { id: 1, href: "/arabes", image: "/images/banner-arabes.png", tone: "dark", position: 0 },
+  { id: 2, href: "/disenador", image: "/images/banner-disenador.png", tone: "dark", position: 1 },
+];
+for (const b of DEFAULT_BANNERS) {
+  run(
+    `INSERT OR IGNORE INTO banners (id, href, title, kicker, image, tone, position)
+     VALUES (?,?,?,?,?,?,?)`,
+    b.id, b.href, "", "", b.image, b.tone, b.position,
+  );
+}
+
+// Mensaje del paso de pago (editable después desde /admin/mensajes).
+run(
+  `INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`,
+  CHECKOUT_NOTE_KEY, store.checkoutNote,
+);
 
 const count = get<{ c: number }>(`SELECT COUNT(*) AS c FROM products`)!.c;
 const vcount = get<{ c: number }>(`SELECT COUNT(*) AS c FROM variants`)!.c;

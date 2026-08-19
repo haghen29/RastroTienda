@@ -32,23 +32,22 @@ export function CategoryStrip({ categories }: { categories: Category[] }) {
             <Link
               key={c.slug}
               href={`/${c.slug}`}
-              className="relative shrink-0 w-[47%] md:w-[213px] h-[100px] snap-start overflow-hidden group"
+              className="shrink-0 w-[47%] md:w-[213px] snap-start group"
             >
-              {c.image ? (
-                <Image
-                  src={c.image}
-                  alt=""
-                  fill
-                  sizes="(max-width: 767px) 47vw, 213px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-[var(--accent-color)]" />
-              )}
-              <span className="absolute inset-0 bg-black/15" />
-              <span className="absolute inset-0 grid place-items-center text-white text-[14px] drop-shadow">
-                {c.name}
-              </span>
+              <div className="relative h-[100px] overflow-hidden">
+                {c.image ? (
+                  <Image
+                    src={c.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 767px) 47vw, 213px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[var(--accent-color)]" />
+                )}
+              </div>
+              <span className="block text-center text-[14px] mt-2">{c.name}</span>
             </Link>
           ))}
         </div>

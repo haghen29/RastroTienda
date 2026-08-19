@@ -2,11 +2,12 @@ PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS categories (
-  slug        TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  image       TEXT NOT NULL DEFAULT '',
-  position    INTEGER NOT NULL DEFAULT 0
+  slug         TEXT PRIMARY KEY,
+  name         TEXT NOT NULL,
+  description  TEXT NOT NULL DEFAULT '',
+  image        TEXT NOT NULL DEFAULT '',
+  position     INTEGER NOT NULL DEFAULT 0,
+  home_visible INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS products (
@@ -106,6 +107,22 @@ CREATE TABLE IF NOT EXISTS sections (
   cta_href   TEXT NOT NULL DEFAULT '',
   image      TEXT NOT NULL DEFAULT '',
   position   INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS banners (
+  id       INTEGER PRIMARY KEY AUTOINCREMENT,
+  href     TEXT NOT NULL DEFAULT '',
+  title    TEXT NOT NULL DEFAULT '',
+  kicker   TEXT NOT NULL DEFAULT '',
+  image    TEXT NOT NULL DEFAULT '',
+  tone     TEXT NOT NULL DEFAULT 'dark',
+  position INTEGER NOT NULL DEFAULT 0
+);
+
+-- Textos del sitio editables desde /admin (ej. "checkout_note").
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS messages (

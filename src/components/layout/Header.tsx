@@ -43,7 +43,7 @@ export function Header({ categories }: { categories: Category[] }) {
             <button
               type="button"
               onClick={() => setMenu(true)}
-              className="md:hidden p-1 -ml-1"
+              className="relative z-10 md:hidden p-1 -ml-1"
               aria-label="Abrir menú"
             >
               <IconBars size={26} />
@@ -52,7 +52,7 @@ export function Header({ categories }: { categories: Category[] }) {
             {/* desktop: buscador abierto */}
             <form
               onSubmit={submit}
-              className="hidden md:flex items-center bg-white border border-[var(--fg-10)] h-[37px] w-[210px] px-3"
+              className="relative z-10 hidden md:flex items-center bg-white border border-[var(--fg-10)] h-[37px] w-[210px] px-3"
             >
               <input
                 value={term}
@@ -69,14 +69,14 @@ export function Header({ categories }: { categories: Category[] }) {
             {/* logo */}
             <Link
               href="/"
-              className="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+              className="absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
             >
               <Logo width={160} className="md:hidden" />
               <Logo width={250} className="hidden md:block" />
             </Link>
 
             {/* acciones */}
-            <div className="flex items-center gap-4 md:gap-5">
+            <div className="relative z-10 flex items-center gap-4 md:gap-5">
               <button
                 type="button"
                 onClick={() => setSearch(true)}
@@ -85,7 +85,7 @@ export function Header({ categories }: { categories: Category[] }) {
               >
                 <IconSearch size={24} />
               </button>
-              <Link href="/cuenta" className="hidden md:block p-1" aria-label="Mi cuenta">
+              <Link href="/cuenta" className="hidden md:block p-1" aria-label="Seguir mi pedido">
                 <IconUser size={26} />
               </Link>
               <button
@@ -194,9 +194,7 @@ export function Header({ categories }: { categories: Category[] }) {
 
             <div className="border-t border-[var(--fg-10)] px-5 py-4 flex items-center gap-3 text-[13px]">
               <IconUser size={20} />
-              <Link href="/cuenta" onClick={() => setMenu(false)} className="underline">Iniciar sesión</Link>
-              <span>·</span>
-              <Link href="/cuenta/registro" onClick={() => setMenu(false)} className="underline">Crear cuenta</Link>
+              <Link href="/cuenta" onClick={() => setMenu(false)} className="underline">Seguir mi pedido</Link>
             </div>
           </div>
         </div>

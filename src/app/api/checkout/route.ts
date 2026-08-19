@@ -3,7 +3,6 @@ import { z } from "zod";
 import { all } from "@/lib/db";
 import { createOrder, getCoupon } from "@/lib/repo/orders";
 import { quoteShipping } from "@/lib/shipping";
-import { createPreference, mpConfigured } from "@/lib/payments/mercadopago";
 import { sendMerchantNotification, sendTransferInstructions } from "@/lib/mail";
 import { newOrderMessage, sendWhatsApp, transferProofMessage, waLink } from "@/lib/whatsapp";
 import { store } from "@/lib/config";
@@ -36,7 +35,7 @@ const Body = z.object({
     city: z.string().max(120).optional().default(""),
     state: z.string().max(120).optional().default(""),
   }),
-  paymentMethod: z.enum(["mercadopago", "transfer"]),
+  paymentMethod: z.literal("transfer"),
   couponCode: z.string().max(40).optional().default(""),
   note: z.string().max(1000).optional().default(""),
 });
@@ -128,7 +127,7 @@ export async function POST(req: Request) {
   }
 
   // Descuento por transferencia
-  if (input.paymentMethod === "transfer" && store.transfer.discountPct > 0) {
+  if (store.transfer.discountPct > 0) {
     discount += Math.round(((subtotal - discount) * store.transfer.discountPct) / 100);
   }
 
@@ -136,8 +135,8 @@ export async function POST(req: Request) {
 
   // ---- 4. Crear la orden ----
   const order = createOrder({
-    status: input.paymentMethod === "transfer" ? "awaiting_transfer" : "pending",
-    paymentMethod: input.paymentMethod,
+    status: "awaiting_transfer",
+    paymentMethod: "transfer",
     paymentRef: "",
     customerName: input.customer.name,
     customerEmail: input.customer.email,
@@ -170,42 +169,14 @@ export async function POST(req: Request) {
   void sendMerchantNotification(order).catch(() => {});
   void sendWhatsApp(store.phoneWhatsapp, newOrderMessage(order)).catch(() => {});
 
-  // ---- 6. Ramas de pago ----
-  if (input.paymentMethod === "transfer") {
-    void sendTransferInstructions(order).catch(() => {});
-    return NextResponse.json({
-      orderId: order.id,
-      method: "transfer",
-      redirect: `/checkout/gracias/${order.id}`,
-      whatsapp: waLink(transferProofMessage(order)),
-      transfer: store.transfer,
-      total: order.total,
-    });
-  }
-
-  if (!mpConfigured()) {
-    return NextResponse.json(
-      {
-        error:
-          "El pago con tarjeta todavía no está configurado. Elegí transferencia o escribinos por WhatsApp.",
-      },
-      { status: 503 },
-    );
-  }
-
-  try {
-    const pref = await createPreference(order);
-    return NextResponse.json({
-      orderId: order.id,
-      method: "mercadopago",
-      redirect: pref.initPoint,
-      preferenceId: pref.id,
-    });
-  } catch (e) {
-    console.error("[checkout] Mercado Pago falló:", e);
-    return NextResponse.json(
-      { error: "No pudimos abrir el pago con tarjeta. Probá de nuevo o pagá por transferencia." },
-      { status: 502 },
-    );
-  }
+  // ---- 6. Transferencia (único medio de pago disponible) ----
+  void sendTransferInstructions(order).catch(() => {});
+  return NextResponse.json({
+    orderId: order.id,
+    method: "transfer",
+    redirect: `/checkout/gracias/${order.id}`,
+    whatsapp: waLink(transferProofMessage(order)),
+    transfer: store.transfer,
+    total: order.total,
+  });
 }
