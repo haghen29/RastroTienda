@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Tokens de diseño — replican 1:1 las variables del tema
+   Morelia usado hoy por Rastro Perfumería.
+   ============================================================ */
+:root {
+  --main-foreground: #333333;
+  --main-background: #ffffff;
+  --accent-color: #e8e8e3;
+  --button-background: #e8e8e3;
+  --button-foreground: #2c3e50;
+  --header-background: #e8e8e3;
+  --header-foreground: #333333;
+  --footer-background: #e8e8e3;
+  --footer-foreground: #000000;
+  --newsletter-background: #e8e8e3;
+  --services-background: #eff2ee;
+
+  --success: #4bb98c;
+  --danger: #dd7774;
+  --warning: #dc8f38;
+  --info: #71b5dc;
+
+  --fg-03: #33333308;
+  --fg-05: #3333330d;
+  --fg-07: #33333312;
+  --fg-10: #3333331a;
+  --fg-20: #33333333;
+  --fg-30: #3333334d;
+  --fg-40: #33333366;
+
+  --font-piazzolla: "Piazzolla";
+  --font-instrument: "Instrument Sans";
+
+  --container-width: 1020px;
+  --gutter: 15px;
+  --gutter-container: 30px;
+  --gutter-container-md: 40px;
+}
+
+@theme inline {
+  --color-fg: var(--main-foreground);
+  --color-bg: var(--main-background);
+  --color-accent: var(--accent-color);
+  --color-btn: var(--button-background);
+  --color-btn-fg: var(--button-foreground);
+  --color-header: var(--header-background);
+  --color-footer: var(--footer-background);
+  --color-services: var(--services-background);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-fg-05: var(--fg-05);
+  --color-fg-10: var(--fg-10);
+  --color-fg-20: var(--fg-20);
+  --color-fg-40: var(--fg-40);
+
+  --font-heading: var(--font-piazzolla), serif;
+  --font-body: var(--font-instrument), sans-serif;
+
+  --text-h1: 24px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-h4: 18px;
+  --text-h5: 16px;
+  --text-h6: 14px;
+  --text-huge: 24px;
+  --text-large: 18px;
+  --text-big: 16px;
+  --text-base: 14px;
+  --text-small: 12px;
+  --text-smallest: 10px;
+
+  --breakpoint-md: 768px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--main-background);
+  color: var(--main-foreground);
+  font-family: var(--font-instrument), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-piazzolla), serif;
+  font-weight: 400;
+}
+
+/* Contenedor central: 1020px con padding lateral 30/40px */
+.container-rastro {
+  width: 100%;
+  max-width: calc(var(--container-width) + var(--gutter-container) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter-container);
+}
+@media (min-width: 768px) {
+  .container-rastro {
+    max-width: calc(var(--container-width) + var(--gutter-container-md) * 2);
+    padding-inline: var(--gutter-container-md);
+  }
+}
+
+/* Botón primario: exactamente el del tema (sin radio, sin borde) */
+.btn-rastro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 13px;
+  border: 0;
+  border-radius: 0;
+  background: var(--button-background);
+  color: var(--button-foreground);
+  font-size: 12px;
+  font-family: var(--font-instrument), sans-serif;
+  line-height: 1;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.btn-rastro:hover:not(:disabled) { filter: brightness(0.95); }
+.btn-rastro:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-link-rastro {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.input-rastro {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--fg-10);
+  border-radius: 0;
+  background: #fff;
+  font-size: 14px;
+  color: var(--main-foreground);
+}
+.input-rastro::placeholder { color: var(--fg-40); }
+.input-rastro:focus {
+  outline: none;
+  border-color: var(--fg-40);
+}
+
+.fade-in { animation: fadeIn 0.4s ease both; }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* Oculta la scrollbar en los carruseles horizontales */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

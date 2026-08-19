@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|Code|OneDrive' } | Select-Object ProcessName, Id | Format-Table -AutoSize)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(node -e \"console.log\\(process.platform, process.arch\\)\")",
+      "Bash(cd \"c:\\\\Users\\\\ASUS\\\\Downloads\\\\rastrostore\" && rm -rf node_modules/@next/swc-win32-x64-msvc && npm install 2>&1)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object LocalPort, State, OwningProcess | ForEach-Object { $_; Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue | Select-Object ProcessName, Id, Path })",
+      "PowerShell(Get-Process -Id 18752 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"ProcessId = 18752\")",
+      "PowerShell(Stop-Process -Id 18752 -Force)"
+    ]
+  }
+}

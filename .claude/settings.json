@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -b rastro_admin=1787110817257.148b6108eb5d7588755a85842d33cf70211cd67fe6ab412f102cdfcba223e39a -o /tmp/secciones.html -w 'admin/secciones: %{http_code}\\\\n' http://localhost:3000/admin/secciones)",
+      "Bash(curl -s -b rastro_admin=1787110817257.148b6108eb5d7588755a85842d33cf70211cd67fe6ab412f102cdfcba223e39a -o /dev/null -w 'revert: %{http_code}\\\\n' -X POST http://localhost:3000/admin/secciones -F '$ACTION_ID_400bb0722be877fabb1847129adc140be3bfdd6903=' -F id=1 -F 'title=Perfumes de Diseñador 100ml' -F 'kicker=LISTADO DE' -F 'text=Escribinos al Instagram y te lo llevamos.' -F 'ctaLabel=Ver decants de diseñador' -F ctaHref=/disenador -F image=)",
+      "Bash(rm -f /tmp/cookies.txt /tmp/token.ts /tmp/secciones.html /tmp/update_result.html *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

@@ -1,0 +1,97 @@
+import { db, run, get } from "../src/lib/db";
+import { ALL_PRODUCTS, CATEGORIES, imageBase } from "../data/catalog";
+import { img } from "../src/lib/config";
+
+const conn = db();
+
+// Limpieza para poder re-sembrar sin duplicar
+conn.exec(`DELETE FROM product_categories;
+           DELETE FROM variants;
+           DELETE FROM products;
+           DELETE FROM categories;`);
+
+/**
+ * Imagen destacada de cada categoría. Usamos una foto real de producto en
+ * 1024 px en lugar de los banners de 240 px del tema actual, que se ven
+ * borrosos en cualquier pantalla moderna.
+ */
+const CATEGORY_IMAGE_FROM: Record<string, string> = {
+  masculino: "decant-bad-boy-cobalt-elixir",
+  femenino: "decant-yara-candy",
+  unisex: "decant-khamra",
+  arabes: "decant-asad",
+  disenador: "decant-le-male-edt",
+  combo: "decant-9pm",
+};
+
+function categoryImage(slug: string): string {
+  const from = CATEGORY_IMAGE_FROM[slug];
+  const p = ALL_PRODUCTS.find((x) => x.slug === from);
+  const code = p?.images[1] ?? p?.images[0];
+  return code ? img(imageBase(code), 1024) : "";
+}
+
+for (const c of CATEGORIES) {
+  run(
+    `INSERT INTO categories (slug, name, image, position) VALUES (?,?,?,?)`,
+    c.slug, c.name, categoryImage(c.slug), c.order,
+  );
+}
+
+let position = 0;
+for (const p of ALL_PRODUCTS) {
+  const images = p.images.map((code) => img(imageBase(code), 1024));
+  run(
+    `INSERT INTO products (slug, name, description, occasions, gender, brand, images, featured, published, position)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    p.slug, p.name, p.description, p.occasions, p.gender, "",
+    JSON.stringify(images), p.featured ? 1 : 0, p.published === false ? 0 : 1, position++,
+  );
+  const id = get<{ id: number }>(`SELECT id FROM products WHERE slug = ?`, p.slug)!.id;
+  let vpos = 0;
+  for (const v of p.variants) {
+    run(
+      `INSERT INTO variants (product_id, size, price, stock, sku, weight_gr, position)
+       VALUES (?,?,?,?,?,?,?)`,
+      id, v.size, v.price, null, v.sku ?? "", v.weightGr, vpos++,
+    );
+  }
+  for (const c of p.categories) {
+    run(
+      `INSERT OR IGNORE INTO product_categories (product_id, category_slug) VALUES (?,?)`,
+      id, c,
+    );
+  }
+}
+
+// Un cupón de ejemplo para probar el flujo
+run(
+  `INSERT OR REPLACE INTO coupons (code, kind, value, min_total, uses_left, active)
+   VALUES ('RASTRO10', 'percent', 10, 0, NULL, 1)`,
+);
+
+// Secciones del carrusel de inicio (editables después desde /admin/secciones).
+// INSERT OR IGNORE con id fijo: si el admin ya las editó, un re-seed no las pisa.
+const DEFAULT_SECTIONS = [
+  {
+    id: 1, title: "Perfumes de Diseñador 100ml", kicker: "LISTADO DE",
+    text: "Escribinos al Instagram y te lo llevamos.",
+    ctaLabel: "Ver decants de diseñador", ctaHref: "/disenador", position: 0,
+  },
+  {
+    id: 2, title: "Perfumes Árabes 100ml", kicker: "LISTADO DE",
+    text: "Escribinos al Instagram y te lo llevamos.",
+    ctaLabel: "Ver decants árabes", ctaHref: "/arabes", position: 1,
+  },
+];
+for (const s of DEFAULT_SECTIONS) {
+  run(
+    `INSERT OR IGNORE INTO sections (id, title, kicker, text, cta_label, cta_href, image, position)
+     VALUES (?,?,?,?,?,?,?,?)`,
+    s.id, s.title, s.kicker, s.text, s.ctaLabel, s.ctaHref, "", s.position,
+  );
+}
+
+const count = get<{ c: number }>(`SELECT COUNT(*) AS c FROM products`)!.c;
+const vcount = get<{ c: number }>(`SELECT COUNT(*) AS c FROM variants`)!.c;
+console.log(`Sembrado: ${count} productos, ${vcount} variantes, ${CATEGORIES.length} categorías.`);
